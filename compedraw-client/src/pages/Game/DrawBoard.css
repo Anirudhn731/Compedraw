@@ -1,0 +1,118 @@
+.DrawBoard-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.Buttons-container {
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.tools-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-button {
+  padding: 0;
+  display: inline-block;
+  appearance: none;
+  text-align: center;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  background-color: rgb(68, 60, 60);
+  border: 1px solid rgb(85, 75, 75);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.tool-button:hover {
+  background-color: rgb(55, 51, 51);
+  box-shadow: 2px 2px 5px rgba(255, 136, 0, 0.5);
+  border: none;
+}
+
+.tool-button i {
+  transform: translateX(-100%); 
+}
+
+.stroke-width-scale {
+  position: relative; 
+  display: inline-block;
+}
+
+.stroke-width-scale input[type="range"] {
+  position: absolute;
+  bottom: 90%;
+  transform: translateX(-50%);
+  display: inline-block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.stroke-width-scale:hover input[type="range"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.color-picker {
+  appearance: none;
+  border-radius: 50%;
+  border-style: none;
+  background-color: transparent;
+  cursor: pointer;
+  width: 200%;
+  height: 200%;
+  transform: translate(-25%, -25%);
+}
+
+.color-picker-container {
+  position: relative;
+  border-radius: 999px;
+  width: 35px;
+  height: 35px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.DrawBoard svg {
+  border-radius: 15px;
+}
+
+.DrawBoard {
+  border: none !important;
+}
+
+.stroke-color-container {
+  position: relative;
+}
+
+.color-history-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 35px; height: 35px;
+}
+
+.colorHistorybtn {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid black;
+  background-color: transparent;
+  position: absolute;  
+  transform: translate(35%, 35%) rotate(calc(-130deg + var(--angle))) translate(35px); 
+  transform-origin: center;
+  opacity: 1;
+  z-index: 1;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+
