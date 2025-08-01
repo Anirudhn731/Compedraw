@@ -16,7 +16,8 @@ app.use(
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const { db_createNewGame } = require("./compedraw-db/mongo.ts");
+const { db_createNewGame, db_getLobbyPlayers } = require("./compedraw-db/mongo.ts");
+const { generateRoomId } = require("./utils.tsx");
 
 app.get("/", (req, res) => {
   console.log("Root endpoint hit");
@@ -48,9 +49,9 @@ io.on("connection", (socket) => {
   
   // New Game Event 
   socket.on("newGame", async (numPlayers, callback) => {
-    const roomId = 1234;
+    const roomId = generateRoomId();
 
-    const dbResult = await db_createNewGame(roomId, numPlayers);
+    const dbResult = await db_createNewGame(roomId, numPlayers, socket.id);
     if (dbResult == true) {
       console.log("api db_createNewGame returned true");
       callback({ status: true, roomId: roomId });
@@ -59,6 +60,18 @@ io.on("connection", (socket) => {
       callback({ status: false, message: "Error creating new game" });
     }
   });
+
+  // Retrieve Lobby Players Event
+  socket.on("getLobby", async (roomId, callback) => {
+    const dbResult = await db_getLobbyPlayers(roomId);
+    if (dbResult) {
+      callback({status: true, players: dbResult});
+    }
+    else {
+      console.error("Error retrieving Lobby Players for room: ", roomId);
+      callback({status: false, message: "Error retrieving Lobby Players"});
+    }
+  })
 
 });
 

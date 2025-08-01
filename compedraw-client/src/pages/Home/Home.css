@@ -84,3 +84,15 @@
   text-align: center;
   display: inline-block;
 }
+
+#lobby-body {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+#ready-list {
+  list-style-type: none;;
+}

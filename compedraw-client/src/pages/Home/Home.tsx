@@ -53,6 +53,7 @@ function Home() {
         </div>
         <div id="lobby-body">
           <ul id="player-list"></ul>
+          <ul id="ready-list"></ul>
         </div>
       </div>
     </>
