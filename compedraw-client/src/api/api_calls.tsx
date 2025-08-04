@@ -88,6 +88,14 @@ export async function api_update_lobby(roomId, numPlayers) {
           readyList.appendChild(readyListItem);
         }
       }
+
+      // Update Ready Statuses for each player that has joined
+      for (let i = 0; i < result.players.length; i++) {
+        const readyListItem = document.getElementById(`ready-${i + 1}`);
+        if (readyListItem) {
+          readyListItem.innerText = "Ready";
+        }
+      }
     } else {
       console.error(result.message);
       document.getElementById(
