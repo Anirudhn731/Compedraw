@@ -43,22 +43,29 @@ export function api_new_game_old(numPlayers: number) {
 }
 
 export async function api_new_game(numPlayers) {
-  try {
-    const result = await socket.emitWithAck("newGame", numPlayers);
-    if (result.status) {
-      console.log("Success:", result.roomId);
-      await api_update_lobby(result.roomId, numPlayers);
-    } else {
-      document.getElementById(
-        "lobby-header"
-      ).innerHTML = `<h2>Error creating new game :'(<h2>`;
-    }
-  } catch (error) {
-    console.error("Error creating new game:", error);
+  const result = await socket.emitWithAck("newGame", numPlayers);
+  if (result.status) {
+    console.log("Successfully created new game: ", result.roomId);
+  } else {
+    document.getElementById(
+      "lobby-header"
+    ).innerHTML = `<h2>There seems to be an error. Please try again later :-(<h2>`;
   }
 }
 
-export async function api_update_lobby(roomId, numPlayers) {
+export async function api_join_game(roomId) {
+  const result = await socket.emitWithAck("joinGame", roomId);
+  if (result.status) {
+    console.log("Successfully joined game: ", roomId);
+  } else {
+    document.getElementById(
+      "lobby-header"
+    ).innerHTML = `<h2>There seems to be an error. Please try again later :-(<h2>`;
+  }
+}
+
+socket.on("updateLobby", async (roomId) => {
+  console.log("Updating Lobby");
   try {
     const result = await socket.emitWithAck("getLobby", roomId);
     if (result.status && result.players) {
@@ -73,11 +80,11 @@ export async function api_update_lobby(roomId, numPlayers) {
         )[0].style.pointerEvents = "none";
         document.getElementById(
           "room-code-lobby"
-        ).innerText = `Room Code: ${result.roomId}`;
+        ).innerText = `Room Code: ${roomId}`;
 
         const playerList = document.getElementById("player-list");
         const readyList = document.getElementById("ready-list");
-        for (let i = 1; i <= numPlayers; i++) {
+        for (let i = 1; i <= result.numPlayers; i++) {
           const playerListItem = document.createElement("li");
           const readyListItem = document.createElement("li");
           playerListItem.innerText = `Player ${i}`;
@@ -97,13 +104,17 @@ export async function api_update_lobby(roomId, numPlayers) {
         }
       }
     } else {
-      console.error(result.message);
+      console.error("Error updating Lobby");
       document.getElementById(
         "lobby-header"
       ).innerHTML = `<h2>Error updating Lobby :'(<h2>`;
+      throw new Error("Error updating Lobby - Error Log: ");
     }
   } catch (error) {
-    console.error("Error updating Lobby: ", error);
-    throw new Error("Error updating Lobby: " + error.message);
+    console.error("Error updating Lobby");
+    document.getElementById(
+      "lobby-header"
+    ).innerHTML = `<h2>Error updating Lobby :'(<h2>`;
+    throw error;
   }
-}
+});

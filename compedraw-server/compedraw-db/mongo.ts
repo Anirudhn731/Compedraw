@@ -11,72 +11,54 @@ async function getgamesCollection() {
     return games;
   }
   catch (error) {
-    console.error("Error connecting to MongoDB: ", error);
-    return null;
+    throw new Error("Error connecting to MongoDB: " + error);
   }
 }
 
 export async function db_createNewGame(roomId, numPlayers, socket_id) {
+  try {
     let games = await getgamesCollection();
-
-    if(games) {
-      try {
-      const result = await games.insertOne({ createdAt: new Date(), roomId: roomId, numPlayers: numPlayers, playerIds: [socket_id] });
-      if (result.acknowledged && result.insertedId) {
-        console.log("New game created successfully:", result);
-        return true;
-      } else {
-        console.error("Error creating new game 1:", result);
-        return false;
-      }
-      } catch (error) {
-        console.error("Error creating new game 2:", error);
-        return false;
-      }
+    const result = await games.insertOne({ createdAt: new Date(), roomId: roomId, numPlayers: numPlayers, playerIds: [socket_id] });
+    if (result.acknowledged && result.insertedId) {
+      console.log("New game created successfully:", result);
+    } else {
+      throw new Error("Error inserting new information in database - returned: " + result);
     }
-    else {
-      console.error("Error connecting to MongoDB: games collection not found");
-      return false;
-    }
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function db_getLobbyPlayers(roomId) {
-  let games = await getgamesCollection();
-  if(games) {
-    try {
-      const result = await games.findOne({roomId: roomId}, { projection: {playerIds: 1, _id: 0}});
-      if (result) {
-        console.log("Lobby players retrieved successfully:", result);
-        return result.playerIds;
-      }
-
+  try {
+    let games = await getgamesCollection();
+    const result = await games.findOne({roomId: roomId}, { projection: {numPlayers: 1, playerIds: 1, _id: 0}});
+    if (result) {
+      console.log("Lobby players retrieved successfully:", result);
+      return result;
     }
-    catch (error) {
-      console.error("Error retrieving lobby players for room: ", roomId, " Error Log: ", error);
-      return null;
+    else {
+      throw new Error("Error retrieving Lobby Players from database");
     }
   }
-  else {
-    console.error("Error connecting to MongoDB: games collection not found");
-    return null;
+  catch (error) {
+    throw error;
   }
 }
 
-export async function db_addPlayertoRoom(games, roomID, socket_id) {
+export async function db_addPlayertoRoom(roomId, socket_id) {
   try {
+    let games = await getgamesCollection();
     const result = await games.updateOne(
-      { roomId: roomID },
+      { roomId: roomId },
       { $addToSet: { playerIds: socket_id } }
     );
     if (result.modifiedCount > 0) {
       console.log("Player added to room successfully");
-      return true;
     } else {
-      console.error("Error adding player to room:", result);
-      return false;
+      throw new Error("Error adding player to room in database - returned: " + result);
     }
   } catch (error) {
-    console.error("Error adding player to room:", error);
-    return false;
+    throw error;
   }
 }

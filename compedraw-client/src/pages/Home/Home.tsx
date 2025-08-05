@@ -1,10 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
-import { v4 } from "uuid";
-import { api_new_game } from "../../api/api_calls";
+import { api_new_game, api_join_game } from "../../api/api_calls";
 
 function Home() {
-  const navigate = useNavigate();
-
   const handleNewGameSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const numPlayers = event.currentTarget.numPlayers.value;
@@ -23,7 +19,8 @@ function Home() {
       alert("Please enter a room code");
       return;
     }
-    navigate("/game/" + roomId);
+
+    api_join_game(roomId);
   };
 
   return (

@@ -16,7 +16,7 @@ app.use(
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const { db_createNewGame, db_getLobbyPlayers } = require("./compedraw-db/mongo.ts");
+const { db_createNewGame, db_getLobbyPlayers, db_addPlayertoRoom } = require("./compedraw-db/mongo.ts");
 const { generateRoomId } = require("./utils.tsx");
 
 app.get("/", (req, res) => {
@@ -46,30 +46,54 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
+
+  // Retrieve Lobby Players Event
+  socket.on("getLobby", async (roomId, callback) => {
+    try {
+      const dbResult = await db_getLobbyPlayers(roomId);
+      if (dbResult) {
+        callback({status: true, players: dbResult.playerIds, numPlayers: dbResult.numPlayers});
+      }
+      else {
+        console.error("Error retrieving Lobby Players for room: ", roomId);
+        callback({status: false});
+      }
+    }
+    catch (error) {
+      console.error("getLobby call failed - Error Log: ", error);
+      callback({status: false});
+    }
+  });
   
   // New Game Event 
   socket.on("newGame", async (numPlayers, callback) => {
     const roomId = generateRoomId();
-
-    const dbResult = await db_createNewGame(roomId, numPlayers, socket.id);
-    if (dbResult == true) {
-      console.log("api db_createNewGame returned true");
-      callback({ status: true, roomId: roomId });
-    } else {
-      console.error("api db_createNewGame returned false");
-      callback({ status: false, message: "Error creating new game" });
+    
+    try {
+      const dbResult = await db_createNewGame(roomId, numPlayers, socket.id);
+      await socket.join(roomId);
+      console.log("Before emitting updateLobby for room: ", roomId);
+      await io.to(roomId).emit("updateLobby", roomId);
+      console.log("After emitting updateLobby");
+      callback({status: true, roomId: roomId });       
+    }
+    catch (error) {
+      console.error("Error creating new game - Error Log: ", error);
+      callback({status: false});
     }
   });
 
-  // Retrieve Lobby Players Event
-  socket.on("getLobby", async (roomId, callback) => {
-    const dbResult = await db_getLobbyPlayers(roomId);
-    if (dbResult) {
-      callback({status: true, players: dbResult});
+  // Join Game Event
+  socket.on("joinGame", async (roomId, callback) => {
+    try {
+      await db_addPlayertoRoom(roomId, socket.id);
+      socket.join(roomId);
+      await io.to(roomId).emit("updateLobby", roomId);
+      callback({status: true, roomId: roomId });
     }
-    else {
-      console.error("Error retrieving Lobby Players for room: ", roomId);
-      callback({status: false, message: "Error retrieving Lobby Players"});
+    catch (error) {
+      console.error("Error joining game - Error Log: ", error);
+      callback({status: false});
     }
   })
 
